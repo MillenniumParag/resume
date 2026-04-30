@@ -6,6 +6,8 @@
 <title>Resume Builder</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:wght@300;400;700&family=Open+Sans:wght@300;400;600&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+
 <style>
 /* ── TOKENS ──────────────────────────────────────────────── */
 :root {
@@ -37,18 +39,12 @@
   --modal-txt: #111111;
   --modal-border: #d0d4da;
   --modal-input-bg: #f4f6f8;
+  
+  --resume-font: 'Times New Roman', Times, serif;
 }
 [data-theme="dark"] {
   --ws-bg: #13151a;
-  --page-bg: #1e2330;
   --page-shadow: 0 4px 32px rgba(0,0,0,.45);
-
-  --txt: #e4e8f0;
-  --txt2: #9aa3b2;
-  --border: #2e3447;
-  --input-bg: #252b3a;
-  --hover-hl: rgba(26,107,74,.12);
-  --focus-hl: rgba(26,107,74,.22);
 
   --modal-bg: #1e2330;
   --modal-txt: #e4e8f0;
@@ -126,6 +122,23 @@ body{
   margin-bottom:9px;padding:0 3px;
 }
 
+/* Typography Selection */
+.font-select {
+  width: 100%;
+  padding: 8px;
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-border);
+  color: var(--sb-text);
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  margin-bottom: 6px;
+}
+.font-select:hover { border-color: #3d4452; }
+.font-select option { background: var(--sb-bg); color: var(--sb-text); }
+
 /* Format buttons */
 .fmt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px}
 .fmt-btn{
@@ -158,15 +171,12 @@ body{
 .swatch:hover{transform:scale(1.15)}
 .swatch.active{border-color:#fff;box-shadow:0 0 0 1px var(--sb-border)}
 
-/* Undo/Redo */
-.undo-row{display:flex;gap:4px;margin-bottom:0}
-
 /* ── WORKSPACE ───────────────────────────────────────────── */
 .workspace{
   flex:1;overflow-y:auto;
   background:var(--ws-bg);
   padding:36px 40px;
-  display:block; /* Fixed: Removed flexbox from here */
+  display:block;
   transition:background .25s;
 }
 .workspace::-webkit-scrollbar{width:5px}
@@ -175,25 +185,30 @@ body{
 
 /* ── RESUME PAGE ─────────────────────────────────────────── */
 .resume{
-  margin:0 auto; /* Fixed: Added margin to center horizontally */
+  margin: 0 auto;
   width:760px;max-width:100%;
   background:var(--page-bg);
   box-shadow:var(--page-shadow);
   border-radius:2px;
   padding:44px 52px 52px;
   min-height:960px;
-  font-family:'Times New Roman',Times,serif;
+  font-family: var(--resume-font);
   font-size:11pt;
   line-height:1.4;
   color:var(--txt);
   transition:background .25s,box-shadow .25s,color .25s;
 }
 
+/* Icon toggle styling */
+.resume.hide-icons .contact-item > i:not(.remove-x) {
+  display: none !important;
+}
+
 /* ── RESUME HEADER ───────────────────────────────────────── */
 .resume header{text-align:center;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border)}
 .resume h1{
   color:var(--accent);
-  font-family:'Playfair Display',serif;
+  font-family: inherit;
   font-size:2.3em;font-weight:700;
   font-variant:small-caps;letter-spacing:2px;
   margin-bottom:10px;outline:none;
@@ -202,12 +217,26 @@ body{
   display:flex;flex-wrap:wrap;justify-content:center;
   gap:10px 18px;font-size:.93em;margin-top:4px;
 }
-.contact-item{display:flex;align-items:center;gap:5px;position:relative}
+.contact-item{display:flex;align-items:center;gap:5px;position:relative; transition: opacity 0.2s;}
 .contact-item i.remove-x{
   color:#e05252;cursor:pointer;font-size:10px;margin-left:2px;
   opacity:0;transition:opacity .18s;
 }
 .contact-item:hover .remove-x{opacity:1}
+
+/* Drag handling for contact items */
+.contact-item > i:first-child {
+  cursor: grab;
+  padding: 2px;
+}
+.contact-item > i:first-child:active {
+  cursor: grabbing;
+}
+.contact-item.dragging-contact {
+  opacity: 0.35;
+  background: var(--hover-hl);
+  border-radius: 4px;
+}
 
 /* ── RESUME SECTIONS ─────────────────────────────────────── */
 #sortable-sections{display:flex;flex-direction:column;gap:13px}
@@ -239,7 +268,7 @@ section.dragging{opacity:.35;background:var(--hover-hl)}
   text-transform:uppercase;letter-spacing:.06em;
   border-bottom:1px solid var(--accent);
   padding-bottom:2px;margin-bottom:8px;
-  font-weight:normal;outline:none;
+  font-weight:bold;outline:none;
 }
 .content-block{margin-bottom:11px}
 .flex-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
@@ -277,6 +306,7 @@ hr{border:none;border-top:1px solid var(--border)}
   background:#1c2330;padding:3px 5px;border-radius:5px;
   display:none;gap:2px;font-family:'Inter',sans-serif;
   box-shadow:0 2px 8px rgba(0,0,0,.25);
+  z-index: 50;
 }
 .table-wrap:hover .tbl-toolbar{display:flex}
 .tbl-toolbar button{
@@ -340,6 +370,7 @@ td:focus{background:var(--focus-hl);outline:none}
     margin:0;padding:20px 28px;box-shadow:none;
     max-width:100%;color:#000;background:#fff;
   }
+  .resume.hide-icons .contact-item > i:not(.remove-x) { display: none !important; }
   section{padding-left:0;margin-left:0}
   .sec-controls,.del-hr,.tbl-toolbar,.remove-x{display:none!important}
   td{border:none;padding:2px 6px}
@@ -371,6 +402,21 @@ td:focus{background:var(--focus-hl);outline:none}
   <!-- SIDEBAR -->
   <aside class="sidebar">
 
+    <!-- Typography -->
+    <div class="sb-section">
+      <div class="sb-label">Typography</div>
+      <select class="font-select" id="font-select">
+        <option value="'Times New Roman', Times, serif">Times New Roman</option>
+        <option value="'Inter', sans-serif">Inter</option>
+        <option value="Arial, Helvetica, sans-serif">Arial</option>
+        <option value="'Playfair Display', serif">Playfair Display</option>
+        <option value="'Lora', serif">Lora</option>
+        <option value="'Merriweather', serif">Merriweather</option>
+        <option value="'Open Sans', sans-serif">Open Sans</option>
+        <option value="'Roboto', sans-serif">Roboto</option>
+      </select>
+    </div>
+
     <!-- Text Formatting -->
     <div class="sb-section">
       <div class="sb-label">Text Formatting</div>
@@ -379,6 +425,13 @@ td:focus{background:var(--focus-hl);outline:none}
         <button class="fmt-btn" id="fmt-italic" title="Italic"><i class="fas fa-italic"></i></button>
         <button class="fmt-btn" id="fmt-underline" title="Underline"><i class="fas fa-underline"></i></button>
         <button class="fmt-btn" id="fmt-strike" title="Strikethrough"><i class="fas fa-strikethrough"></i></button>
+        
+        <!-- Text Alignment added -->
+        <button class="fmt-btn" id="fmt-left" title="Align Left"><i class="fas fa-align-left"></i></button>
+        <button class="fmt-btn" id="fmt-center" title="Align Center"><i class="fas fa-align-center"></i></button>
+        <button class="fmt-btn" id="fmt-right" title="Align Right"><i class="fas fa-align-right"></i></button>
+        <button class="fmt-btn" id="fmt-justify" title="Justify"><i class="fas fa-align-justify"></i></button>
+
         <button class="fmt-btn span2" id="btn-uppercase">ALL CAPS</button>
         <button class="fmt-btn span2" id="btn-smallcaps" style="font-variant:small-caps">Small Caps</button>
       </div>
@@ -387,6 +440,7 @@ td:focus{background:var(--focus-hl);outline:none}
     <!-- Header Links -->
     <div class="sb-section">
       <div class="sb-label">Header Links</div>
+      <button class="sb-btn" id="toggle-icons-btn" style="margin-bottom: 8px;"><i class="fas fa-eye-slash"></i> <span>Hide Contact Icons</span></button>
       <button class="sb-btn" id="add-linkedin"><i class="fab fa-linkedin"></i> Add LinkedIn</button>
       <button class="sb-btn" id="add-github"><i class="fab fa-github"></i> Add GitHub</button>
       <button class="sb-btn" id="add-website"><i class="fas fa-globe"></i> Add Website</button>
@@ -397,7 +451,6 @@ td:focus{background:var(--focus-hl);outline:none}
     <!-- Structure -->
     <div class="sb-section">
       <div class="sb-label">Structure</div>
-      <button class="sb-btn" id="add-link-btn"><i class="fas fa-link"></i> Add / Edit In-Text Link</button>
       <button class="sb-btn" id="add-section-btn"><i class="fas fa-align-left"></i> Add Text Section</button>
       <button class="sb-btn" id="add-table-btn"><i class="fas fa-table"></i> Add Table Section</button>
       <button class="sb-btn" id="add-skills-btn"><i class="fas fa-code"></i> Add Skills Section</button>
@@ -427,11 +480,13 @@ td:focus{background:var(--focus-hl);outline:none}
       <!-- HEADER -->
       <header>
         <h1 contenteditable="true" spellcheck="false">Your Name</h1>
+        
         <div class="contact-info" id="basic-contact">
-          <div class="contact-item"><i class="fas fa-location-dot"></i><span contenteditable="true">Your Location</span></div>
-          <div class="contact-item"><i class="fas fa-phone"></i><span contenteditable="true">Your Contact No.</span></div>
-          <div class="contact-item"><i class="fas fa-envelope"></i><a href="mailto:your.mail@gmail.com" contenteditable="true">your.mail@gmail.com</a></div>
+          <div class="contact-item"><i class="fas fa-location-dot"></i><span contenteditable="true">Your Location</span><i class="fas fa-xmark remove-x" onclick="this.parentElement.remove()" title="Remove"></i></div>
+          <div class="contact-item"><i class="fas fa-phone"></i><span contenteditable="true">Your Contact No.</span><i class="fas fa-xmark remove-x" onclick="this.parentElement.remove()" title="Remove"></i></div>
+          <div class="contact-item"><i class="fas fa-envelope"></i><a href="mailto:your.mail@gmail.com" contenteditable="true">your.mail@gmail.com</a><i class="fas fa-xmark remove-x" onclick="this.parentElement.remove()" title="Remove"></i></div>
         </div>
+        
         <div class="contact-info" id="links-contact" style="margin-top:6px">
           <div class="contact-item"><i class="fas fa-globe"></i><a href="#" contenteditable="true">yourwebsite.com</a><i class="fas fa-xmark remove-x" onclick="this.parentElement.remove()" title="Remove"></i></div>
           <div class="contact-item"><i class="fab fa-linkedin"></i><a href="#" contenteditable="true">linkedin.com/in/yourHandle</a><i class="fas fa-xmark remove-x" onclick="this.parentElement.remove()" title="Remove"></i></div>
@@ -626,24 +681,10 @@ td:focus{background:var(--focus-hl);outline:none}
   </main>
 </div><!-- end .layout -->
 
-<!-- LINK MODAL -->
-<div class="modal-overlay" id="link-modal">
-  <div class="modal-box">
-    <div class="modal-title"><i class="fas fa-link" style="margin-right:8px;color:var(--accent)"></i>Edit Link URL</div>
-    <input type="url" class="modal-input" id="link-url-input" placeholder="https://example.com">
-    <div class="modal-footer">
-      <button class="mbtn mbtn-remove" id="modal-remove">Remove Link</button>
-      <div>
-        <button class="mbtn mbtn-cancel" id="modal-cancel">Cancel</button>
-        <button class="mbtn mbtn-save" id="modal-save">Save</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <script>
 /* ══════════════════════════════════════════════════════════
-   HELPERS
+   HELPERS & STRUCTURE GENERATION
 ══════════════════════════════════════════════════════════ */
 function makeSection(isTable) {
   const s = document.createElement('section');
@@ -652,7 +693,7 @@ function makeSection(isTable) {
   s.innerHTML = `
     <div class="sec-controls">
       <div class="ctrl-btn drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></div>
-      <div class="ctrl-btn add-hr-btn" title="Add Divider"><i class="fas fa-minus"></i></div>
+      <div class="ctrl-btn add-hr-btn" title="Add Divider Below"><i class="fas fa-minus"></i></div>
       <div class="ctrl-btn del-sec-btn" title="Delete Section"><i class="fas fa-trash"></i></div>
     </div>
     <h2 contenteditable="true" spellcheck="false">${title}</h2>
@@ -706,6 +747,270 @@ function makeSkillsSection() {
 }
 
 /* ══════════════════════════════════════════════════════════
+   DRAG AND DROP REORDERING (VERTICAL - SECTIONS)
+══════════════════════════════════════════════════════════ */
+let draggedElement = null;
+
+function attachDrag(el) {
+  const handle = el.querySelector('.drag-handle');
+  if(!handle) return;
+  
+  handle.addEventListener('mousedown', () => el.setAttribute('draggable', 'true'));
+  handle.addEventListener('mouseup', () => el.removeAttribute('draggable'));
+  
+  el.addEventListener('dragstart', function(e) {
+    draggedElement = this;
+    setTimeout(() => this.classList.add('dragging'), 0);
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  
+  el.addEventListener('dragend', function() {
+    this.classList.remove('dragging');
+    draggedElement = null;
+  });
+  
+  el.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    if (this === draggedElement || !draggedElement) return;
+    
+    const bounding = this.getBoundingClientRect();
+    const offset = bounding.y + (bounding.height / 2);
+    
+    if (e.clientY - offset > 0) {
+      this.style.borderBottom = "2px solid var(--accent)";
+      this.style.borderTop = "";
+    } else {
+      this.style.borderTop = "2px solid var(--accent)";
+      this.style.borderBottom = "";
+    }
+  });
+
+  el.addEventListener('dragleave', function(e) {
+    this.style.borderTop = "";
+    this.style.borderBottom = "";
+  });
+  
+  el.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.style.borderTop = "";
+    this.style.borderBottom = "";
+    if (this !== draggedElement && draggedElement) {
+      const parent = this.parentNode;
+      const bounding = this.getBoundingClientRect();
+      const offset = bounding.y + (bounding.height / 2);
+      if (e.clientY - offset > 0) {
+        parent.insertBefore(draggedElement, this.nextSibling);
+      } else {
+        parent.insertBefore(draggedElement, this);
+      }
+    }
+  });
+}
+document.querySelectorAll('#sortable-sections section').forEach(attachDrag);
+
+
+/* ══════════════════════════════════════════════════════════
+   DRAG AND DROP REORDERING (HORIZONTAL - CONTACT LINKS)
+══════════════════════════════════════════════════════════ */
+let draggedContact = null;
+
+function attachContactDrag(el) {
+  const handle = el.querySelector('i:first-child');
+  if(!handle) return;
+  
+  handle.setAttribute('title', 'Drag to reorder');
+  handle.addEventListener('mousedown', () => el.setAttribute('draggable', 'true'));
+  handle.addEventListener('mouseup', () => el.removeAttribute('draggable'));
+  
+  el.addEventListener('dragstart', function(e) {
+    draggedContact = this;
+    setTimeout(() => this.classList.add('dragging-contact'), 0);
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  
+  el.addEventListener('dragend', function() {
+    this.classList.remove('dragging-contact');
+    draggedContact = null;
+  });
+  
+  el.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    if (this === draggedContact || !draggedContact) return;
+    
+    const bounding = this.getBoundingClientRect();
+    const offset = bounding.x + (bounding.width / 2);
+    
+    if (e.clientX - offset > 0) {
+      this.style.borderRight = "2px solid var(--accent)";
+      this.style.borderLeft = "";
+    } else {
+      this.style.borderLeft = "2px solid var(--accent)";
+      this.style.borderRight = "";
+    }
+  });
+
+  el.addEventListener('dragleave', function(e) {
+    this.style.borderLeft = "";
+    this.style.borderRight = "";
+  });
+  
+  el.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.style.borderLeft = "";
+    this.style.borderRight = "";
+    if (this !== draggedContact && draggedContact) {
+      const parent = this.parentNode;
+      const bounding = this.getBoundingClientRect();
+      const offset = bounding.x + (bounding.width / 2);
+      if (e.clientX - offset > 0) {
+        parent.insertBefore(draggedContact, this.nextSibling);
+      } else {
+        parent.insertBefore(draggedContact, this);
+      }
+    }
+  });
+}
+document.querySelectorAll('.contact-item').forEach(attachContactDrag);
+
+
+/* ══════════════════════════════════════════════════════════
+   EVENT LISTENERS: HEADER LINKS
+══════════════════════════════════════════════════════════ */
+const linkContainer = document.getElementById('links-contact');
+
+// Toggle Icons 
+document.getElementById('toggle-icons-btn').addEventListener('click', function() {
+  document.querySelector('.resume').classList.toggle('hide-icons');
+  const icon = this.querySelector('i');
+  const textSpan = this.querySelector('span');
+  
+  if (document.querySelector('.resume').classList.contains('hide-icons')) {
+    icon.className = 'fas fa-eye';
+    textSpan.innerText = 'Show Contact Icons';
+  } else {
+    icon.className = 'fas fa-eye-slash';
+    textSpan.innerText = 'Hide Contact Icons';
+  }
+});
+
+function addContactLink(iconClass, text, isLink = true) {
+  const div = document.createElement('div');
+  div.className = 'contact-item';
+  const innerContent = isLink ? `<a href="#" contenteditable="true">${text}</a>` : `<span contenteditable="true">${text}</span>`;
+  div.innerHTML = `<i class="${iconClass}"></i>${innerContent}<i class="fas fa-xmark remove-x" onclick="this.parentElement.remove()" title="Remove"></i>`;
+  linkContainer.appendChild(div);
+  
+  attachContactDrag(div); 
+}
+
+document.getElementById('add-linkedin').addEventListener('click', () => addContactLink('fab fa-linkedin', 'linkedin.com/in/yourHandle'));
+document.getElementById('add-github').addEventListener('click', () => addContactLink('fab fa-github', 'github.com/yourHandle'));
+document.getElementById('add-website').addEventListener('click', () => addContactLink('fas fa-globe', 'yourwebsite.com'));
+document.getElementById('add-email-link').addEventListener('click', () => addContactLink('fas fa-envelope', 'new.mail@gmail.com'));
+document.getElementById('add-phone-link').addEventListener('click', () => addContactLink('fas fa-phone', 'Your Contact No.', false));
+
+/* ══════════════════════════════════════════════════════════
+   EVENT LISTENERS: SECTIONS & STRUCTURE
+══════════════════════════════════════════════════════════ */
+const sortableSections = document.getElementById('sortable-sections');
+document.getElementById('add-section-btn').addEventListener('click', () => sortableSections.appendChild(makeSection(false)));
+document.getElementById('add-table-btn').addEventListener('click', () => sortableSections.appendChild(makeSection(true)));
+document.getElementById('add-skills-btn').addEventListener('click', () => sortableSections.appendChild(makeSkillsSection()));
+
+// Event delegation for dynamic section buttons (Delete, HR, Table manip)
+document.addEventListener('click', (e) => {
+  
+  // Section Delete
+  if (e.target.closest('.del-sec-btn')) {
+    e.target.closest('section').remove();
+  }
+  
+  // Add HR Below Section
+  if (e.target.closest('.add-hr-btn')) {
+    const section = e.target.closest('section');
+    const hr = document.createElement('div');
+    hr.className = 'hr-wrapper';
+    hr.innerHTML = '<hr><i class="fas fa-xmark del-hr" title="Remove Divider"></i>';
+    section.parentNode.insertBefore(hr, section.nextSibling);
+  }
+
+  // Delete HR
+  if (e.target.closest('.del-hr')) {
+    e.target.closest('.hr-wrapper').remove();
+  }
+
+  // Table rows and cols logic
+  if (e.target.closest('.add-row') || e.target.closest('.del-row') || e.target.closest('.add-col') || e.target.closest('.del-col')) {
+    const wrap = e.target.closest('.table-wrap');
+    const tbody = wrap.querySelector('tbody');
+    const rows = tbody.querySelectorAll('tr');
+    
+    if (e.target.closest('.add-row')) {
+      const tr = document.createElement('tr');
+      const cols = rows[0] ? rows[0].children.length : 2;
+      for(let i = 0; i < cols; i++) tr.innerHTML += '<td contenteditable="true">New Cell</td>';
+      tbody.appendChild(tr);
+    } 
+    else if (e.target.closest('.del-row')) {
+      if (rows.length > 1) tbody.lastElementChild.remove();
+    }
+    else if (e.target.closest('.add-col')) {
+      rows.forEach(r => {
+        const td = document.createElement('td');
+        td.contentEditable = "true";
+        td.innerText = "New Col";
+        r.appendChild(td);
+      });
+    }
+    else if (e.target.closest('.del-col')) {
+      rows.forEach(r => {
+        if(r.children.length > 1) r.lastElementChild.remove();
+      });
+    }
+  }
+});
+
+/* ══════════════════════════════════════════════════════════
+   TEXT FORMATTING & TYPOGRAPHY
+══════════════════════════════════════════════════════════ */
+// Font Selection
+document.getElementById('font-select').addEventListener('change', function(e) {
+  document.documentElement.style.setProperty('--resume-font', e.target.value);
+});
+
+// Basic format buttons
+const execCmd = (cmd, val=null) => {
+  document.execCommand(cmd, false, val);
+};
+
+// Alignment Commands
+document.getElementById('fmt-left').addEventListener('click', () => execCmd('justifyLeft'));
+document.getElementById('fmt-center').addEventListener('click', () => execCmd('justifyCenter'));
+document.getElementById('fmt-right').addEventListener('click', () => execCmd('justifyRight'));
+document.getElementById('fmt-justify').addEventListener('click', () => execCmd('justifyFull'));
+
+// Formatting Commands
+document.getElementById('fmt-bold').addEventListener('click', () => execCmd('bold'));
+document.getElementById('fmt-italic').addEventListener('click', () => execCmd('italic'));
+document.getElementById('fmt-underline').addEventListener('click', () => execCmd('underline'));
+document.getElementById('fmt-strike').addEventListener('click', () => execCmd('strikeThrough'));
+
+// Custom wrappers for All Caps / Small Caps (since execCommand doesn't support text-transform directly)
+function wrapSelectionWithStyle(styleString) {
+  const selection = window.getSelection();
+  if (!selection.rangeCount) return;
+  const text = selection.toString();
+  if (text.trim() === "") return;
+  
+  const span = `<span style="${styleString}">${text}</span>`;
+  document.execCommand('insertHTML', false, span);
+}
+
+document.getElementById('btn-uppercase').addEventListener('click', () => wrapSelectionWithStyle('text-transform: uppercase;'));
+document.getElementById('btn-smallcaps').addEventListener('click', () => wrapSelectionWithStyle('font-variant: small-caps;'));
+
+
+/* ══════════════════════════════════════════════════════════
    THEME TOGGLE
 ══════════════════════════════════════════════════════════ */
 const html = document.documentElement;
@@ -722,15 +1027,12 @@ themeBtn.addEventListener('click', () => {
 ══════════════════════════════════════════════════════════ */
 document.querySelectorAll('.swatch').forEach(sw => {
   sw.addEventListener('click', () => {
-    // Remove active class from all swatches
     document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
-    // Add active class to the clicked swatch
     sw.classList.add('active');
-    
-    // Update the CSS root variable with the new color
     document.documentElement.style.setProperty('--accent', sw.dataset.color);
   });
 });
+
 </script>
 </body>
 </html>
