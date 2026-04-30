@@ -75,7 +75,7 @@ body{
   display:flex;
   align-items:center;
   padding:0 16px;
-  gap:10px;
+  gap:8px; /* Slightly reduced gap to fit new buttons */
   flex-shrink:0;
   z-index:200;
 }
@@ -101,6 +101,7 @@ body{
   background:var(--sb-surface);border:1px solid var(--sb-border);
   color:var(--sb-text);cursor:pointer;font-size:13px;
   display:flex;align-items:center;justify-content:center;transition:all .18s;
+  margin-right: 4px;
 }
 .theme-btn:hover{background:var(--sb-active);color:#fff}
 #mobile-menu-btn { display: none; } /* Hidden by default */
@@ -404,9 +405,12 @@ td:focus{background:var(--focus-hl);outline:none}
   .resume { padding: 36px 36px 36px 44px; min-height: auto; } /* Extra left padding for controls */
 }
 
+@media (max-width: 768px) {
+  .topbar-btn span.btn-text { display: none; }
+}
+
 @media (max-width: 600px) {
   .topbar-brand span.txt { display: none; }
-  .topbar-btn span.btn-text { display: none; }
   .workspace { padding: 12px 8px; }
   .resume { padding: 24px 16px 24px 32px; font-size: 10pt; }
   .resume h1 { font-size: 2em; }
@@ -468,8 +472,15 @@ td:focus{background:var(--focus-hl);outline:none}
   <button class="theme-btn" id="theme-toggle" title="Toggle light/dark mode">
     <i class="fas fa-moon" id="theme-icon"></i>
   </button>
-  <button class="topbar-btn" onclick="document.execCommand('undo')"><i class="fas fa-rotate-left"></i> <span class="btn-text">Undo</span></button>
-  <button class="topbar-btn" onclick="document.execCommand('redo')"><i class="fas fa-rotate-right"></i> <span class="btn-text">Redo</span></button>
+  <button class="topbar-btn" onclick="document.execCommand('undo')" title="Undo"><i class="fas fa-rotate-left"></i> <span class="btn-text">Undo</span></button>
+  <button class="topbar-btn" onclick="document.execCommand('redo')" title="Redo"><i class="fas fa-rotate-right"></i> <span class="btn-text">Redo</span></button>
+  
+  <!-- New File Controls -->
+  <button class="topbar-btn" id="save-draft-btn" title="Save to Browser"><i class="fas fa-floppy-disk"></i> <span class="btn-text">Save</span></button>
+  <button class="topbar-btn" id="export-file-btn" title="Export as HTML File"><i class="fas fa-file-export"></i> <span class="btn-text">Export</span></button>
+  <button class="topbar-btn" id="import-file-btn" title="Import HTML File"><i class="fas fa-file-import"></i> <span class="btn-text">Import</span></button>
+  <input type="file" id="import-file-input" style="display:none" accept=".html">
+
   <button class="topbar-btn save" onclick="window.print()"><i class="fas fa-download"></i> <span class="btn-text">Save PDF</span></button>
 </div>
 
@@ -506,7 +517,7 @@ td:focus{background:var(--focus-hl);outline:none}
         <button class="fmt-btn" id="fmt-underline" title="Underline"><i class="fas fa-underline"></i></button>
         <button class="fmt-btn" id="fmt-strike" title="Strikethrough"><i class="fas fa-strikethrough"></i></button>
         
-        <!-- Text Alignment added -->
+        <!-- Text Alignment -->
         <button class="fmt-btn" id="fmt-left" title="Align Left"><i class="fas fa-align-left"></i></button>
         <button class="fmt-btn" id="fmt-center" title="Align Center"><i class="fas fa-align-center"></i></button>
         <button class="fmt-btn" id="fmt-right" title="Align Right"><i class="fas fa-align-right"></i></button>
@@ -843,20 +854,33 @@ function makeSkillsSection() {
 }
 
 /* ══════════════════════════════════════════════════════════
-   DRAG AND DROP REORDERING (VERTICAL - SECTIONS & HRS)
+   DRAG AND DROP REORDERING (VERTICAL & HORIZONTAL)
 ══════════════════════════════════════════════════════════ */
 let draggedElement = null;
+let draggedContact = null;
+
+function reattachAllListeners() {
+  // Clear any stray state
+  draggedElement = null;
+  draggedContact = null;
+
+  document.querySelectorAll('#sortable-sections section').forEach(attachDrag);
+  document.querySelectorAll('.contact-item').forEach(attachContactDrag);
+  document.querySelectorAll('.hr-wrapper').forEach(attachDrag);
+}
 
 function attachDrag(el) {
   const handle = el.querySelector('.drag-handle');
   if(!handle) return;
   
-  handle.addEventListener('mousedown', () => el.setAttribute('draggable', 'true'));
-  handle.addEventListener('mouseup', () => el.removeAttribute('draggable'));
+  // Clean up old listeners if re-attaching
+  const newHandle = handle.cloneNode(true);
+  handle.parentNode.replaceChild(newHandle, handle);
   
-  // Also add touch events for mobile drag (simplified support)
-  handle.addEventListener('touchstart', () => el.setAttribute('draggable', 'true'), {passive: true});
-  handle.addEventListener('touchend', () => el.removeAttribute('draggable'));
+  newHandle.addEventListener('mousedown', () => el.setAttribute('draggable', 'true'));
+  newHandle.addEventListener('mouseup', () => el.removeAttribute('draggable'));
+  newHandle.addEventListener('touchstart', () => el.setAttribute('draggable', 'true'), {passive: true});
+  newHandle.addEventListener('touchend', () => el.removeAttribute('draggable'));
   
   el.addEventListener('dragstart', function(e) {
     draggedElement = this;
@@ -906,24 +930,19 @@ function attachDrag(el) {
     }
   });
 }
-document.querySelectorAll('#sortable-sections section').forEach(attachDrag);
-
-
-/* ══════════════════════════════════════════════════════════
-   DRAG AND DROP REORDERING (HORIZONTAL - CONTACT LINKS)
-══════════════════════════════════════════════════════════ */
-let draggedContact = null;
 
 function attachContactDrag(el) {
   const handle = el.querySelector('i:first-child');
   if(!handle) return;
   
-  handle.setAttribute('title', 'Drag to reorder');
-  handle.addEventListener('mousedown', () => el.setAttribute('draggable', 'true'));
-  handle.addEventListener('mouseup', () => el.removeAttribute('draggable'));
+  const newHandle = handle.cloneNode(true);
+  handle.parentNode.replaceChild(newHandle, handle);
   
-  handle.addEventListener('touchstart', () => el.setAttribute('draggable', 'true'), {passive: true});
-  handle.addEventListener('touchend', () => el.removeAttribute('draggable'));
+  newHandle.setAttribute('title', 'Drag to reorder');
+  newHandle.addEventListener('mousedown', () => el.setAttribute('draggable', 'true'));
+  newHandle.addEventListener('mouseup', () => el.removeAttribute('draggable'));
+  newHandle.addEventListener('touchstart', () => el.setAttribute('draggable', 'true'), {passive: true});
+  newHandle.addEventListener('touchend', () => el.removeAttribute('draggable'));
   
   el.addEventListener('dragstart', function(e) {
     draggedContact = this;
@@ -973,7 +992,75 @@ function attachContactDrag(el) {
     }
   });
 }
-document.querySelectorAll('.contact-item').forEach(attachContactDrag);
+
+// Initial attachment
+reattachAllListeners();
+
+
+/* ══════════════════════════════════════════════════════════
+   SAVE, EXPORT, IMPORT LOGIC
+══════════════════════════════════════════════════════════ */
+
+// 1. Auto-load from local storage on startup
+window.addEventListener('DOMContentLoaded', () => {
+  const savedDraft = localStorage.getItem('resumeDraftData');
+  if (savedDraft) {
+    document.querySelector('.resume').innerHTML = savedDraft;
+    reattachAllListeners(); // Rebind drag events after loading new HTML
+  }
+});
+
+// 2. Save Draft to Local Storage
+document.getElementById('save-draft-btn').addEventListener('click', function() {
+  const resumeHtml = document.querySelector('.resume').innerHTML;
+  localStorage.setItem('resumeDraftData', resumeHtml);
+  
+  // Visual feedback
+  const icon = this.querySelector('i');
+  const text = this.querySelector('.btn-text');
+  icon.className = 'fas fa-check';
+  text.innerText = 'Saved!';
+  
+  setTimeout(() => {
+    icon.className = 'fas fa-floppy-disk';
+    text.innerText = 'Save';
+  }, 2000);
+});
+
+// 3. Export Draft as File
+document.getElementById('export-file-btn').addEventListener('click', function() {
+  const resumeHtml = document.querySelector('.resume').innerHTML;
+  const blob = new Blob([resumeHtml], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Resume_Draft_Backup.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+// 4. Import Draft from File
+document.getElementById('import-file-btn').addEventListener('click', () => {
+  document.getElementById('import-file-input').click();
+});
+
+document.getElementById('import-file-input').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    document.querySelector('.resume').innerHTML = event.target.result;
+    reattachAllListeners(); // Rebind drag events after loading new HTML
+  };
+  reader.readAsText(file);
+  
+  // Clear the input so the same file can be uploaded again if needed
+  this.value = ''; 
+});
 
 
 /* ══════════════════════════════════════════════════════════
