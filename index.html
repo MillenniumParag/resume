@@ -7,6 +7,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:wght@300;400;700&family=Open+Sans:wght@300;400;600&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- CMU Fonts -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/dreampulse/computer-modern-web-font@master/fonts.css">
 
 <style>
 /* ── TOKENS ──────────────────────────────────────────────── */
@@ -91,6 +93,7 @@ body{
   transition:all .18s;
 }
 .topbar-btn:hover{background:var(--sb-hover);border-color:#3d4452;color:#fff}
+.topbar-btn:hover i{color:#fff}
 .topbar-btn.save{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
 .topbar-btn.save:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
 .theme-btn{
@@ -100,6 +103,7 @@ body{
   display:flex;align-items:center;justify-content:center;transition:all .18s;
 }
 .theme-btn:hover{background:var(--sb-active);color:#fff}
+#mobile-menu-btn { display: none; } /* Hidden by default */
 
 /* ── LAYOUT ──────────────────────────────────────────────── */
 .layout{display:flex;flex:1;overflow:hidden}
@@ -110,7 +114,7 @@ body{
   background:var(--sb-bg);
   border-right:1px solid var(--sb-border);
   overflow-y:auto;display:flex;flex-direction:column;
-  transition:background .25s;
+  transition:background .25s, left 0.3s ease;
 }
 .sidebar::-webkit-scrollbar{width:3px}
 .sidebar::-webkit-scrollbar-thumb{background:var(--sb-border);border-radius:2px}
@@ -120,6 +124,10 @@ body{
   font-size:10px;font-weight:700;letter-spacing:.1em;
   text-transform:uppercase;color:var(--sb-label);
   margin-bottom:9px;padding:0 3px;
+}
+
+.sidebar-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 900;
 }
 
 /* Typography Selection */
@@ -148,6 +156,7 @@ body{
   font-family:'Inter',sans-serif;
 }
 .fmt-btn:hover{background:var(--sb-active);color:#fff;border-color:#3d4452}
+.fmt-btn:hover i{color:#fff}
 .fmt-btn.span2{grid-column:span 2;font-size:11px;font-weight:700;letter-spacing:.05em}
 
 /* Sidebar action buttons */
@@ -160,7 +169,7 @@ body{
 }
 .sb-btn i{width:14px;font-size:12px;color:var(--sb-muted);flex-shrink:0;transition:color .16s}
 .sb-btn:hover{background:var(--sb-hover);color:#e8eaf0}
-.sb-btn:hover i{color:var(--accent)}
+.sb-btn:hover i{color:#ffffff} 
 
 /* Color swatches */
 .swatches{display:flex;gap:7px;flex-wrap:wrap;padding:2px 3px}
@@ -177,7 +186,7 @@ body{
   background:var(--ws-bg);
   padding:36px 40px;
   display:block;
-  transition:background .25s;
+  transition:background .25s, padding 0.3s ease;
 }
 .workspace::-webkit-scrollbar{width:5px}
 .workspace::-webkit-scrollbar-thumb{background:#c0c4cc;border-radius:3px}
@@ -196,7 +205,7 @@ body{
   font-size:11pt;
   line-height:1.4;
   color:var(--txt);
-  transition:background .25s,box-shadow .25s,color .25s;
+  transition:background .25s,box-shadow .25s,color .25s, padding 0.3s ease;
 }
 
 /* Icon toggle styling */
@@ -250,6 +259,7 @@ section{
   position:absolute;left:0;top:2px;
   display:flex;flex-direction:column;gap:4px;
   opacity:0;transition:opacity .18s;
+  z-index: 10;
 }
 section:hover .sec-controls{opacity:1}
 .ctrl-btn{
@@ -290,7 +300,26 @@ p{text-align:justify;margin-bottom:5px;outline:none}
 .resume a:hover{background:var(--hover-hl)}
 
 /* HR divider */
-.hr-wrapper{position:relative;margin:6px 0;padding:8px 0}
+.hr-wrapper{position:relative;margin:6px 0;padding:8px 0; transition: opacity .2s;}
+.hr-drag-handle {
+  position: absolute;
+  left: -24px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--txt2);
+  cursor: grab;
+  opacity: 0;
+  transition: opacity .18s;
+  font-size: 13px;
+  padding: 4px;
+  background: var(--page-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  z-index: 10;
+}
+.hr-drag-handle:active { cursor: grabbing; }
+.hr-wrapper:hover .hr-drag-handle { opacity: 1; }
+.hr-wrapper.dragging { opacity: .35; background: var(--hover-hl); border-radius: 4px; }
 hr{border:none;border-top:1px solid var(--border)}
 .del-hr{
   position:absolute;right:-26px;top:0;
@@ -361,10 +390,57 @@ td:focus{background:var(--focus-hl);outline:none}
 .mbtn-cancel{background:var(--modal-input-bg);color:var(--modal-txt);border:1px solid var(--modal-border)}
 .mbtn-cancel:hover{background:var(--border)}
 
+/* ── RESPONSIVE DESIGN (MOBILE & TABLET) ─────────────────── */
+@media (max-width: 950px) {
+  #mobile-menu-btn { display: flex; }
+  .sidebar {
+    position: fixed; top: 48px; bottom: 0; left: -260px;
+    z-index: 950; box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+  }
+  .sidebar.open { left: 0; }
+  .sidebar-overlay.active { display: block; }
+  
+  .workspace { padding: 24px 16px; }
+  .resume { padding: 36px 36px 36px 44px; min-height: auto; } /* Extra left padding for controls */
+}
+
+@media (max-width: 600px) {
+  .topbar-brand span.txt { display: none; }
+  .topbar-btn span.btn-text { display: none; }
+  .workspace { padding: 12px 8px; }
+  .resume { padding: 24px 16px 24px 32px; font-size: 10pt; }
+  .resume h1 { font-size: 2em; }
+  .resume h2 { font-size: 1.1em; }
+  
+  /* Pull controls inward so they don't overflow screen */
+  section { padding-left: 0; margin-left: 0; margin-top: 10px;}
+  .sec-controls { left: -30px; top: -2px; }
+  .hr-drag-handle { left: -28px; }
+  .del-hr { right: -12px; }
+}
+
+/* Touch Device Overrides (Makes controls always visible since you can't hover) */
+@media (hover: none) {
+  .sec-controls, 
+  .contact-item .remove-x, 
+  .hr-drag-handle { 
+    opacity: 1 !important; 
+  }
+  .hr-wrapper .del-hr { 
+    display: block !important; 
+  }
+  .tbl-toolbar { 
+    display: flex !important; 
+  }
+  .sec-controls .ctrl-btn {
+    border-color: var(--accent); /* Highlight so they are obvious targets */
+  }
+}
+
 /* ── PRINT ───────────────────────────────────────────────── */
 @media print{
   body{display:block;overflow:auto;height:auto;background:#fff}
-  .topbar,.sidebar{display:none!important}
+  .topbar,.sidebar,.sidebar-overlay{display:none!important}
   .workspace{padding:0;display:block;background:#fff}
   .resume{
     margin:0;padding:20px 28px;box-shadow:none;
@@ -372,7 +448,7 @@ td:focus{background:var(--focus-hl);outline:none}
   }
   .resume.hide-icons .contact-item > i:not(.remove-x) { display: none !important; }
   section{padding-left:0;margin-left:0}
-  .sec-controls,.del-hr,.tbl-toolbar,.remove-x{display:none!important}
+  .sec-controls,.del-hr,.tbl-toolbar,.remove-x, .hr-drag-handle{display:none!important}
   td{border:none;padding:2px 6px}
   .resume a{border-bottom:none}
   [contenteditable]:hover,[contenteditable]:focus{background:transparent!important}
@@ -384,20 +460,23 @@ td:focus{background:var(--focus-hl);outline:none}
 
 <!-- TOP BAR -->
 <div class="topbar">
+  <button class="topbar-btn" id="mobile-menu-btn" title="Menu"><i class="fas fa-bars"></i></button>
   <div class="topbar-brand">
-    <i class="fas fa-file-lines"></i> Resume Builder
+    <i class="fas fa-file-lines"></i> <span class="txt">Resume Builder</span>
   </div>
   <div class="topbar-sep"></div>
   <button class="theme-btn" id="theme-toggle" title="Toggle light/dark mode">
     <i class="fas fa-moon" id="theme-icon"></i>
   </button>
-  <button class="topbar-btn" onclick="document.execCommand('undo')"><i class="fas fa-rotate-left"></i> Undo</button>
-  <button class="topbar-btn" onclick="document.execCommand('redo')"><i class="fas fa-rotate-right"></i> Redo</button>
-  <button class="topbar-btn save" onclick="window.print()"><i class="fas fa-download"></i> Save as PDF</button>
+  <button class="topbar-btn" onclick="document.execCommand('undo')"><i class="fas fa-rotate-left"></i> <span class="btn-text">Undo</span></button>
+  <button class="topbar-btn" onclick="document.execCommand('redo')"><i class="fas fa-rotate-right"></i> <span class="btn-text">Redo</span></button>
+  <button class="topbar-btn save" onclick="window.print()"><i class="fas fa-download"></i> <span class="btn-text">Save PDF</span></button>
 </div>
 
 <!-- MAIN LAYOUT -->
 <div class="layout">
+  
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
@@ -406,6 +485,7 @@ td:focus{background:var(--focus-hl);outline:none}
     <div class="sb-section">
       <div class="sb-label">Typography</div>
       <select class="font-select" id="font-select">
+        <option value="'Computer Modern Serif', serif">Computer Modern (CMU)</option>
         <option value="'Times New Roman', Times, serif">Times New Roman</option>
         <option value="'Inter', sans-serif">Inter</option>
         <option value="Arial, Helvetica, sans-serif">Arial</option>
@@ -684,6 +764,22 @@ td:focus{background:var(--focus-hl);outline:none}
 
 <script>
 /* ══════════════════════════════════════════════════════════
+   MOBILE SIDEBAR TOGGLE
+══════════════════════════════════════════════════════════ */
+const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+const sidebar = document.querySelector('.sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+function toggleSidebar() {
+  sidebar.classList.toggle('open');
+  sidebarOverlay.classList.toggle('active');
+}
+
+mobileMenuBtn.addEventListener('click', toggleSidebar);
+sidebarOverlay.addEventListener('click', toggleSidebar);
+
+
+/* ══════════════════════════════════════════════════════════
    HELPERS & STRUCTURE GENERATION
 ══════════════════════════════════════════════════════════ */
 function makeSection(isTable) {
@@ -747,7 +843,7 @@ function makeSkillsSection() {
 }
 
 /* ══════════════════════════════════════════════════════════
-   DRAG AND DROP REORDERING (VERTICAL - SECTIONS)
+   DRAG AND DROP REORDERING (VERTICAL - SECTIONS & HRS)
 ══════════════════════════════════════════════════════════ */
 let draggedElement = null;
 
@@ -757,6 +853,10 @@ function attachDrag(el) {
   
   handle.addEventListener('mousedown', () => el.setAttribute('draggable', 'true'));
   handle.addEventListener('mouseup', () => el.removeAttribute('draggable'));
+  
+  // Also add touch events for mobile drag (simplified support)
+  handle.addEventListener('touchstart', () => el.setAttribute('draggable', 'true'), {passive: true});
+  handle.addEventListener('touchend', () => el.removeAttribute('draggable'));
   
   el.addEventListener('dragstart', function(e) {
     draggedElement = this;
@@ -821,6 +921,9 @@ function attachContactDrag(el) {
   handle.setAttribute('title', 'Drag to reorder');
   handle.addEventListener('mousedown', () => el.setAttribute('draggable', 'true'));
   handle.addEventListener('mouseup', () => el.removeAttribute('draggable'));
+  
+  handle.addEventListener('touchstart', () => el.setAttribute('draggable', 'true'), {passive: true});
+  handle.addEventListener('touchend', () => el.removeAttribute('draggable'));
   
   el.addEventListener('dragstart', function(e) {
     draggedContact = this;
@@ -913,9 +1016,18 @@ document.getElementById('add-phone-link').addEventListener('click', () => addCon
    EVENT LISTENERS: SECTIONS & STRUCTURE
 ══════════════════════════════════════════════════════════ */
 const sortableSections = document.getElementById('sortable-sections');
-document.getElementById('add-section-btn').addEventListener('click', () => sortableSections.appendChild(makeSection(false)));
-document.getElementById('add-table-btn').addEventListener('click', () => sortableSections.appendChild(makeSection(true)));
-document.getElementById('add-skills-btn').addEventListener('click', () => sortableSections.appendChild(makeSkillsSection()));
+document.getElementById('add-section-btn').addEventListener('click', () => {
+  sortableSections.appendChild(makeSection(false));
+  if(window.innerWidth <= 950) toggleSidebar();
+});
+document.getElementById('add-table-btn').addEventListener('click', () => {
+  sortableSections.appendChild(makeSection(true));
+  if(window.innerWidth <= 950) toggleSidebar();
+});
+document.getElementById('add-skills-btn').addEventListener('click', () => {
+  sortableSections.appendChild(makeSkillsSection());
+  if(window.innerWidth <= 950) toggleSidebar();
+});
 
 // Event delegation for dynamic section buttons (Delete, HR, Table manip)
 document.addEventListener('click', (e) => {
@@ -930,8 +1042,9 @@ document.addEventListener('click', (e) => {
     const section = e.target.closest('section');
     const hr = document.createElement('div');
     hr.className = 'hr-wrapper';
-    hr.innerHTML = '<hr><i class="fas fa-xmark del-hr" title="Remove Divider"></i>';
+    hr.innerHTML = '<i class="fas fa-grip-vertical drag-handle hr-drag-handle" title="Drag to reorder"></i><hr><i class="fas fa-xmark del-hr" title="Remove Divider"></i>';
     section.parentNode.insertBefore(hr, section.nextSibling);
+    attachDrag(hr); 
   }
 
   // Delete HR
@@ -995,7 +1108,7 @@ document.getElementById('fmt-italic').addEventListener('click', () => execCmd('i
 document.getElementById('fmt-underline').addEventListener('click', () => execCmd('underline'));
 document.getElementById('fmt-strike').addEventListener('click', () => execCmd('strikeThrough'));
 
-// Custom wrappers for All Caps / Small Caps (since execCommand doesn't support text-transform directly)
+// Custom wrappers for All Caps / Small Caps
 function wrapSelectionWithStyle(styleString) {
   const selection = window.getSelection();
   if (!selection.rangeCount) return;
