@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resume Builder</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ──────────────────────────────────────────────── */
+:root {
+  --accent: #1a6b4a;
+  --accent-hover: #15593e;
+  --accent-light: rgba(26,107,74,.08);
+
+  --sb-bg: #1c1f26;
+  --sb-surface: #252930;
+  --sb-border: #2e333d;
+  --sb-text: #c9cdd6;
+  --sb-muted: #6b7280;
+  --sb-label: #4b5563;
+  --sb-hover: #2e333d;
+  --sb-active: #353b47;
+
+  --ws-bg: #eceef0;
+  --page-bg: #ffffff;
+  --page-shadow: 0 4px 32px rgba(0,0,0,.13);
+
+  --txt: #111111;
+  --txt2: #444444;
+  --border: #d9dde3;
+  --input-bg: #f4f6f8;
+  --hover-hl: rgba(26,107,74,.07);
+  --focus-hl: rgba(26,107,74,.13);
+
+  --modal-bg: #ffffff;
+  --modal-txt: #111111;
+  --modal-border: #d0d4da;
+  --modal-input-bg: #f4f6f8;
+}
+[data-theme="dark"] {
+  --ws-bg: #13151a;
+  --page-bg: #1e2330;
+  --page-shadow: 0 4px 32px rgba(0,0,0,.45);
+
+  --txt: #e4e8f0;
+  --txt2: #9aa3b2;
+  --border: #2e3447;
+  --input-bg: #252b3a;
+  --hover-hl: rgba(26,107,74,.12);
+  --focus-hl: rgba(26,107,74,.22);
+
+  --modal-bg: #1e2330;
+  --modal-txt: #e4e8f0;
+  --modal-border: #2e3447;
+  --modal-input-bg: #252b3a;
+}
+
+/* ── RESET ───────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--ws-bg);
+  color:var(--txt);
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  transition:background .25s,color .25s;
+}
+
+/* ── TOP BAR ─────────────────────────────────────────────── */
+.topbar{
+  height:48px;
+  background:var(--sb-bg);
+  border-bottom:1px solid var(--sb-border);
+  display:flex;
+  align-items:center;
+  padding:0 16px;
+  gap:10px;
+  flex-shrink:0;
+  z-index:200;
+}
+.topbar-brand{
+  display:flex;align-items:center;gap:8px;
+  color:#fff;font-size:14px;font-weight:600;letter-spacing:.02em;
+}
+.topbar-brand i{color:var(--accent);font-size:15px}
+.topbar-sep{flex:1}
+.topbar-btn{
+  display:flex;align-items:center;gap:6px;
+  background:none;border:1px solid var(--sb-border);
+  color:var(--sb-text);padding:5px 12px;border-radius:6px;
+  font-size:12.5px;font-family:'Inter',sans-serif;cursor:pointer;
+  transition:all .18s;
+}
+.topbar-btn:hover{background:var(--sb-hover);border-color:#3d4452;color:#fff}
+.topbar-btn.save{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.topbar-btn.save:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.theme-btn{
+  width:32px;height:32px;border-radius:7px;
+  background:var(--sb-surface);border:1px solid var(--sb-border);
+  color:var(--sb-text);cursor:pointer;font-size:13px;
+  display:flex;align-items:center;justify-content:center;transition:all .18s;
+}
+.theme-btn:hover{background:var(--sb-active);color:#fff}
+
+/* ── LAYOUT ──────────────────────────────────────────────── */
+.layout{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+.sidebar{
+  width:248px;flex-shrink:0;
+  background:var(--sb-bg);
+  border-right:1px solid var(--sb-border);
+  overflow-y:auto;display:flex;flex-direction:column;
+  transition:background .25s;
+}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--sb-border);border-radius:2px}
+.sb-section{padding:14px 12px 10px;border-bottom:1px solid var(--sb-border)}
+.sb-section:last-child{border-bottom:none}
+.sb-label{
+  font-size:10px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--sb-label);
+  margin-bottom:9px;padding:0 3px;
+}
+
+/* Format buttons */
+.fmt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px}
+.fmt-btn{
+  height:30px;background:var(--sb-surface);border:1px solid var(--sb-border);
+  color:var(--sb-text);border-radius:5px;cursor:pointer;font-size:12.5px;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+  font-family:'Inter',sans-serif;
+}
+.fmt-btn:hover{background:var(--sb-active);color:#fff;border-color:#3d4452}
+.fmt-btn.span2{grid-column:span 2;font-size:11px;font-weight:700;letter-spacing:.05em}
+
+/* Sidebar action buttons */
+.sb-btn{
+  display:flex;align-items:center;gap:8px;width:100%;
+  padding:7px 10px;background:none;border:none;
+  color:var(--sb-text);font-size:12.5px;font-family:'Inter',sans-serif;
+  cursor:pointer;border-radius:6px;text-align:left;
+  transition:all .16s;margin-bottom:2px;
+}
+.sb-btn i{width:14px;font-size:12px;color:var(--sb-muted);flex-shrink:0;transition:color .16s}
+.sb-btn:hover{background:var(--sb-hover);color:#e8eaf0}
+.sb-btn:hover i{color:var(--accent)}
+
+/* Color swatches */
+.swatches{display:flex;gap:7px;flex-wrap:wrap;padding:2px 3px}
+.swatch{
+  width:24px;height:24px;border-radius:50%;cursor:pointer;
+  border:2px solid transparent;transition:all .18s;
+}
+.swatch:hover{transform:scale(1.15)}
+.swatch.active{border-color:#fff;box-shadow:0 0 0 1px var(--sb-border)}
+
+/* Undo/Redo */
+.undo-row{display:flex;gap:4px;margin-bottom:0}
+
+/* ── WORKSPACE ───────────────────────────────────────────── */
+.workspace{
+  flex:1;overflow-y:auto;
+  background:var(--ws-bg);
+  padding:36px 40px;
+  display:block; /* Fixed: Removed flexbox from here */
+  transition:background .25s;
+}
+.workspace::-webkit-scrollbar{width:5px}
+.workspace::-webkit-scrollbar-thumb{background:#c0c4cc;border-radius:3px}
+[data-theme="dark"] .workspace::-webkit-scrollbar-thumb{background:#2e3447}
+
+/* ── RESUME PAGE ─────────────────────────────────────────── */
+.resume{
+  margin:0 auto; /* Fixed: Added margin to center horizontally */
+  width:760px;max-width:100%;
+  background:var(--page-bg);
+  box-shadow:var(--page-shadow);
+  border-radius:2px;
+  padding:44px 52px 52px;
+  min-height:960px;
+  font-family:'Times New Roman',Times,serif;
+  font-size:11pt;
+  line-height:1.4;
+  color:var(--txt);
+  transition:background .25s,box-shadow .25s,color .25s;
+}
+
+/* ── RESUME HEADER ───────────────────────────────────────── */
+.resume header{text-align:center;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.resume h1{
+  color:var(--accent);
+  font-family:'Playfair Display',serif;
+  font-size:2.3em;font-weight:700;
+  font-variant:small-caps;letter-spacing:2px;
+  margin-bottom:10px;outline:none;
+}
+.contact-info{
+  display:flex;flex-wrap:wrap;justify-content:center;
+  gap:10px 18px;font-size:.93em;margin-top:4px;
+}
+.contact-item{display:flex;align-items:center;gap:5px;position:relative}
+.contact-item i.remove-x{
+  color:#e05252;cursor:pointer;font-size:10px;margin-left:2px;
+  opacity:0;transition:opacity .18s;
+}
+.contact-item:hover .remove-x{opacity:1}
+
+/* ── RESUME SECTIONS ─────────────────────────────────────── */
+#sortable-sections{display:flex;flex-direction:column;gap:13px}
+
+section{
+  position:relative;
+  padding-left:32px;margin-left:-32px;
+  transition:opacity .2s;
+}
+.sec-controls{
+  position:absolute;left:0;top:2px;
+  display:flex;flex-direction:column;gap:4px;
+  opacity:0;transition:opacity .18s;
+}
+section:hover .sec-controls{opacity:1}
+.ctrl-btn{
+  width:22px;height:22px;background:var(--page-bg);
+  border:1px solid var(--border);border-radius:4px;
+  color:var(--txt2);cursor:pointer;font-size:11px;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+.ctrl-btn:hover{background:var(--input-bg);border-color:var(--accent);color:var(--accent)}
+.drag-handle{cursor:grab}
+.drag-handle:active{cursor:grabbing}
+section.dragging{opacity:.35;background:var(--hover-hl)}
+
+.resume h2{
+  color:var(--accent);font-size:1.05em;
+  text-transform:uppercase;letter-spacing:.06em;
+  border-bottom:1px solid var(--accent);
+  padding-bottom:2px;margin-bottom:8px;
+  font-weight:normal;outline:none;
+}
+.content-block{margin-bottom:11px}
+.flex-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.flex-row span{outline:none;min-width:4px}
+ul{padding-left:18px;margin-top:4px}
+li{margin-bottom:3px;outline:none}
+p{text-align:justify;margin-bottom:5px;outline:none}
+
+/* Editable fields */
+[contenteditable="true"]{border-radius:2px;transition:background .15s}
+[contenteditable="true"]:hover{background:var(--hover-hl)}
+[contenteditable="true"]:focus{background:var(--focus-hl);outline:none}
+
+/* Links on resume */
+.resume a{
+  color:var(--txt);text-decoration:none;
+  border-bottom:1px dashed var(--accent);cursor:pointer;
+}
+.resume a:hover{background:var(--hover-hl)}
+
+/* HR divider */
+.hr-wrapper{position:relative;margin:6px 0;padding:8px 0}
+hr{border:none;border-top:1px solid var(--border)}
+.del-hr{
+  position:absolute;right:-26px;top:0;
+  color:#e05252;cursor:pointer;
+  display:none;padding:5px;font-size:13px;
+}
+.hr-wrapper:hover .del-hr{display:block}
+
+/* Tables */
+.table-wrap{position:relative;margin-top:8px}
+.tbl-toolbar{
+  position:absolute;top:-28px;right:0;
+  background:#1c2330;padding:3px 5px;border-radius:5px;
+  display:none;gap:2px;font-family:'Inter',sans-serif;
+  box-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+.table-wrap:hover .tbl-toolbar{display:flex}
+.tbl-toolbar button{
+  background:none;border:none;color:#c9cdd6;
+  cursor:pointer;font-size:11.5px;padding:3px 7px;
+  border-radius:3px;transition:background .15s;
+  font-family:'Inter',sans-serif;
+}
+.tbl-toolbar button:hover{background:#2e3447}
+table{width:100%;border-collapse:collapse}
+td{
+  border:1px dashed var(--border);
+  padding:3px 7px;vertical-align:top;
+  outline:none;transition:background .15s;
+}
+td:hover{background:var(--hover-hl)}
+td:focus{background:var(--focus-hl);outline:none}
+
+/* ── MODAL ───────────────────────────────────────────────── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.5);z-index:2000;
+  justify-content:center;align-items:center;
+}
+.modal-overlay.open{display:flex}
+.modal-box{
+  background:var(--modal-bg);color:var(--modal-txt);
+  padding:24px;border-radius:10px;width:340px;
+  font-family:'Inter',sans-serif;
+  box-shadow:0 8px 32px rgba(0,0,0,.25);
+  border:1px solid var(--modal-border);
+}
+.modal-title{font-weight:600;font-size:16px;margin-bottom:14px;color:var(--modal-txt)}
+.modal-input{
+  width:100%;padding:8px 10px;margin-bottom:14px;
+  border:1px solid var(--modal-border);border-radius:6px;
+  background:var(--modal-input-bg);color:var(--modal-txt);
+  font-family:'Inter',sans-serif;font-size:13px;outline:none;
+  transition:border-color .18s;
+}
+.modal-input:focus{border-color:var(--accent)}
+.modal-footer{display:flex;justify-content:space-between;align-items:center}
+.modal-footer>div{display:flex;gap:7px}
+.mbtn{
+  padding:7px 14px;border:none;border-radius:6px;cursor:pointer;
+  font-size:13px;font-family:'Inter',sans-serif;font-weight:500;transition:all .15s;
+}
+.mbtn-save{background:var(--accent);color:#fff}
+.mbtn-save:hover{background:var(--accent-hover)}
+.mbtn-remove{background:#e05252;color:#fff}
+.mbtn-remove:hover{background:#c43c3c}
+.mbtn-cancel{background:var(--modal-input-bg);color:var(--modal-txt);border:1px solid var(--modal-border)}
+.mbtn-cancel:hover{background:var(--border)}
+
+/* ── PRINT ───────────────────────────────────────────────── */
+@media print{
+  body{display:block;overflow:auto;height:auto;background:#fff}
+  .topbar,.sidebar{display:none!important}
+  .workspace{padding:0;display:block;background:#fff}
+  .resume{
+    margin:0;padding:20px 28px;box-shadow:none;
+    max-width:100%;color:#000;background:#fff;
+  }
+  section{padding-left:0;margin-left:0}
+  .sec-controls,.del-hr,.tbl-toolbar,.remove-x{display:none!important}
+  td{border:none;padding:2px 6px}
+  .resume a{border-bottom:none}
+  [contenteditable]:hover,[contenteditable]:focus{background:transparent!important}
+  h1,h2{color-adjust:exact;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <i class="fas fa-file-lines"></i> Resume Builder
+  </div>
+  <div class="topbar-sep"></div>
+  <button class="theme-btn" id="theme-toggle" title="Toggle light/dark mode">
+    <i class="fas fa-moon" id="theme-icon"></i>
+  </button>
+  <button class="topbar-btn" onclick="document.execCommand('undo')"><i class="fas fa-rotate-left"></i> Undo</button>
+  <button class="topbar-btn" onclick="document.execCommand('redo')"><i class="fas fa-rotate-right"></i> Redo</button>
+  <button class="topbar-btn save" onclick="window.print()"><i class="fas fa-download"></i> Save as PDF</button>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- Text Formatting -->
+    <div class="sb-section">
+      <div class="sb-label">Text Formatting</div>
+      <div class="fmt-grid">
+        <button class="fmt-btn" id="fmt-bold" title="Bold"><i class="fas fa-bold"></i></button>
+        <button class="fmt-btn" id="fmt-italic" title="Italic"><i class="fas fa-italic"></i></button>
+        <button class="fmt-btn" id="fmt-underline" title="Underline"><i class="fas fa-underline"></i></button>
+        <button class="fmt-btn" id="fmt-strike" title="Strikethrough"><i class="fas fa-strikethrough"></i></button>
+        <button class="fmt-btn span2" id="btn-uppercase">ALL CAPS</button>
+        <button class="fmt-btn span2" id="btn-smallcaps" style="font-variant:small-caps">Small Caps</button>
+      </div>
+    </div>
+
+    <!-- Header Links -->
+    <div class="sb-section">
+      <div class="sb-label">Header Links</div>
+      <button class="sb-btn" id="add-linkedin"><i class="fab fa-linkedin"></i> Add LinkedIn</button>
+      <button class="sb-btn" id="add-github"><i class="fab fa-github"></i> Add GitHub</button>
+      <button class="sb-btn" id="add-website"><i class="fas fa-globe"></i> Add Website</button>
+      <button class="sb-btn" id="add-email-link"><i class="fas fa-envelope"></i> Add Email</button>
+      <button class="sb-btn" id="add-phone-link"><i class="fas fa-phone"></i> Add Phone</button>
+    </div>
+
+    <!-- Structure -->
+    <div class="sb-section">
+      <div class="sb-label">Structure</div>
+      <button class="sb-btn" id="add-link-btn"><i class="fas fa-link"></i> Add / Edit In-Text Link</button>
+      <button class="sb-btn" id="add-section-btn"><i class="fas fa-align-left"></i> Add Text Section</button>
+      <button class="sb-btn" id="add-table-btn"><i class="fas fa-table"></i> Add Table Section</button>
+      <button class="sb-btn" id="add-skills-btn"><i class="fas fa-code"></i> Add Skills Section</button>
+    </div>
+
+    <!-- Theme Color -->
+    <div class="sb-section">
+      <div class="sb-label">Theme Color</div>
+      <div class="swatches" id="swatches">
+        <div class="swatch active" style="background:#1a6b4a" data-color="#1a6b4a" title="Forest Green"></div>
+        <div class="swatch" style="background:#1b3a6b" data-color="#1b3a6b" title="Navy"></div>
+        <div class="swatch" style="background:#3d3d3d" data-color="#3d3d3d" title="Charcoal"></div>
+        <div class="swatch" style="background:#7b2637" data-color="#7b2637" title="Burgundy"></div>
+        <div class="swatch" style="background:#2c4a6e" data-color="#2c4a6e" title="Slate Blue"></div>
+        <div class="swatch" style="background:#6b3fa0" data-color="#6b3fa0" title="Violet"></div>
+        <div class="swatch" style="background:#1a6b6b" data-color="#1a6b6b" title="Teal"></div>
+        <div class="swatch" style="background:#7a4a1e" data-color="#7a4a1e" title="Warm Brown"></div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- WORKSPACE -->
+  <main class="workspace">
+    <div class="resume">
+
+      <!-- HEADER -->
+      <header>
+        <h1 contenteditable="true" spellcheck="false">Your Name</h1>
+        <div class="contact-info" id="basic-contact">
+          <div class="contact-item"><i class="fas fa-location-dot"></i><span contenteditable="true">Your Location</span></div>
+          <div class="contact-item"><i class="fas fa-phone"></i><span contenteditable="true">Your Contact No.</span></div>
+          <div class="contact-item"><i class="fas fa-envelope"></i><a href="mailto:your.mail@gmail.com" contenteditable="true">your.mail@gmail.com</a></div>
+        </div>
+        <div class="contact-info" id="links-contact" style="margin-top:6px">
+          <div class="contact-item"><i class="fas fa-globe"></i><a href="#" contenteditable="true">yourwebsite.com</a><i class="fas fa-xmark remove-x" onclick="this.parentElement.remove()" title="Remove"></i></div>
+          <div class="contact-item"><i class="fab fa-linkedin"></i><a href="#" contenteditable="true">linkedin.com/in/yourHandle</a><i class="fas fa-xmark remove-x" onclick="this.parentElement.remove()" title="Remove"></i></div>
+          <div class="contact-item"><i class="fab fa-github"></i><a href="#" contenteditable="true">github.com/yourHandle</a><i class="fas fa-xmark remove-x" onclick="this.parentElement.remove()" title="Remove"></i></div>
+        </div>
+      </header>
+
+      <!-- SECTIONS -->
+      <div id="sortable-sections">
+
+        <!-- Profile Statement -->
+        <section draggable="true">
+          <div class="sec-controls">
+            <div class="ctrl-btn drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></div>
+            <div class="ctrl-btn add-hr-btn" title="Add Divider Below"><i class="fas fa-minus"></i></div>
+            <div class="ctrl-btn del-sec-btn" title="Delete Section"><i class="fas fa-trash"></i></div>
+          </div>
+          <h2 contenteditable="true" spellcheck="false">Profile Statement</h2>
+          <p contenteditable="true">Dynamic and results-oriented [Your Role/Industry] professional with expertise in [Key Skills or Areas, e.g., AI, Web Development, Data Science]. Adept at delivering innovative solutions to solve complex challenges while ensuring scalability and efficiency. Passionate about leveraging cutting-edge technologies to drive progress and create impactful user experiences.</p>
+        </section>
+
+        <!-- Experience -->
+        <section draggable="true">
+          <div class="sec-controls">
+            <div class="ctrl-btn drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></div>
+            <div class="ctrl-btn add-hr-btn" title="Add Divider Below"><i class="fas fa-minus"></i></div>
+            <div class="ctrl-btn del-sec-btn" title="Delete Section"><i class="fas fa-trash"></i></div>
+          </div>
+          <h2 contenteditable="true" spellcheck="false">Experience</h2>
+          <div class="content-block">
+            <div class="flex-row">
+              <span contenteditable="true"><b>Company Name</b></span>
+              <span contenteditable="true"><b>Oct '23 – Present</b></span>
+            </div>
+            <div class="flex-row">
+              <span contenteditable="true"><i>Job Title</i></span>
+              <span contenteditable="true"><i>City, State</i></span>
+            </div>
+            <ul>
+              <li contenteditable="true">Managed [Responsibilities/Tasks, e.g., cross-functional teams to deliver scalable software products].</li>
+              <li contenteditable="true">Delivered [Key Achievements/Impact, e.g., <b>increased system efficiency by 20%</b>].</li>
+              <li contenteditable="true">Utilized [Key Tools/Technologies, e.g., Docker, Kubernetes] to ensure seamless deployment.</li>
+            </ul>
+          </div>
+          <div class="content-block">
+            <div class="flex-row">
+              <span contenteditable="true"><b>Company Name</b></span>
+              <span contenteditable="true"><b>Dec '23 – Mar '24</b></span>
+            </div>
+            <div class="flex-row">
+              <span contenteditable="true"><i>Job Title</i></span>
+              <span contenteditable="true"><i>Remote</i></span>
+            </div>
+            <ul>
+              <li contenteditable="true">Collaborated with [Teams/Clients] to [Key Task/Result, e.g., enhance user interfaces for increased engagement].</li>
+              <li contenteditable="true">Achieved [Key Metric or Impact, e.g., 30% improvement in load times].</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- Technical Skills -->
+        <section draggable="true">
+          <div class="sec-controls">
+            <div class="ctrl-btn drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></div>
+            <div class="ctrl-btn add-hr-btn" title="Add Divider Below"><i class="fas fa-minus"></i></div>
+            <div class="ctrl-btn del-sec-btn" title="Delete Section"><i class="fas fa-trash"></i></div>
+          </div>
+          <h2 contenteditable="true" spellcheck="false">Technical Skills</h2>
+          <div class="table-wrap">
+            <div class="tbl-toolbar">
+              <button class="add-row" title="Add Row Below"><i class="fas fa-plus"></i> Row</button>
+              <button class="del-row" title="Delete Selected Row"><i class="fas fa-trash"></i> Row</button>
+              <button class="add-col" title="Add Column Right"><i class="fas fa-plus"></i> Col</button>
+              <button class="del-col" title="Delete Selected Col"><i class="fas fa-trash"></i> Col</button>
+            </div>
+            <table><tbody>
+              <tr><td contenteditable="true"><b>Programming Languages</b></td><td contenteditable="true">Python, JavaScript, C++</td></tr>
+              <tr><td contenteditable="true"><b>AI &amp; ML Tools</b></td><td contenteditable="true">PyTorch, TensorFlow, Keras, Scikit-learn</td></tr>
+              <tr><td contenteditable="true"><b>Web Development</b></td><td contenteditable="true">Flask, FastAPI, MERN Stack</td></tr>
+              <tr><td contenteditable="true"><b>Databases</b></td><td contenteditable="true">MySQL, MongoDB, SQLite</td></tr>
+              <tr><td contenteditable="true"><b>Other Expertise</b></td><td contenteditable="true">Git, Docker, REST API, Data Analysis, Web Scraping</td></tr>
+            </tbody></table>
+          </div>
+        </section>
+
+        <!-- Education -->
+        <section draggable="true">
+          <div class="sec-controls">
+            <div class="ctrl-btn drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></div>
+            <div class="ctrl-btn add-hr-btn" title="Add Divider Below"><i class="fas fa-minus"></i></div>
+            <div class="ctrl-btn del-sec-btn" title="Delete Section"><i class="fas fa-trash"></i></div>
+          </div>
+          <h2 contenteditable="true" spellcheck="false">Education</h2>
+          <div class="content-block">
+            <div class="flex-row">
+              <span contenteditable="true"><b>Your University / College Name</b></span>
+              <span contenteditable="true"><b>Jul '21 – Present</b></span>
+            </div>
+            <div class="flex-row">
+              <span contenteditable="true"><i>Bachelor of Science in [Your Major], CGPA: [Your CGPA]</i></span>
+              <span contenteditable="true"><i>City, State</i></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Achievements -->
+        <section draggable="true">
+          <div class="sec-controls">
+            <div class="ctrl-btn drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></div>
+            <div class="ctrl-btn add-hr-btn" title="Add Divider Below"><i class="fas fa-minus"></i></div>
+            <div class="ctrl-btn del-sec-btn" title="Delete Section"><i class="fas fa-trash"></i></div>
+          </div>
+          <h2 contenteditable="true" spellcheck="false">Achievements</h2>
+          <ul>
+            <li contenteditable="true">Received [Award Name] for [Reason/Accomplishment].</li>
+            <li contenteditable="true">Solved [Number] problems on [Platform Name], showcasing problem-solving expertise.</li>
+            <li contenteditable="true">Secured [Rank/Position] in [Competition/Event Name].</li>
+          </ul>
+        </section>
+
+        <!-- Projects -->
+        <section draggable="true">
+          <div class="sec-controls">
+            <div class="ctrl-btn drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></div>
+            <div class="ctrl-btn add-hr-btn" title="Add Divider Below"><i class="fas fa-minus"></i></div>
+            <div class="ctrl-btn del-sec-btn" title="Delete Section"><i class="fas fa-trash"></i></div>
+          </div>
+          <h2 contenteditable="true" spellcheck="false">Projects</h2>
+          <div class="content-block">
+            <div class="flex-row">
+              <span contenteditable="true"><b>Project Title</b> | <i>Python, TensorFlow, CNN</i></span>
+              <span contenteditable="true"><b>Sep '24</b></span>
+            </div>
+            <ul>
+              <li contenteditable="true">Developed [Brief Description] to [Purpose/Impact].</li>
+              <li contenteditable="true">Achieved [Key Metric] using [Technologies/Tools].</li>
+            </ul>
+          </div>
+          <div class="content-block">
+            <div class="flex-row">
+              <span contenteditable="true"><b>Another Project Title</b> | <i>Python, NLP, RNN</i></span>
+              <span contenteditable="true"><b>Sep '23</b></span>
+            </div>
+            <ul>
+              <li contenteditable="true">Built [Brief Description] to [Purpose/Impact].</li>
+              <li contenteditable="true">Contributed to [Specific Role/Feature] using [Technologies/Tools].</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- Leadership -->
+        <section draggable="true">
+          <div class="sec-controls">
+            <div class="ctrl-btn drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></div>
+            <div class="ctrl-btn add-hr-btn" title="Add Divider Below"><i class="fas fa-minus"></i></div>
+            <div class="ctrl-btn del-sec-btn" title="Delete Section"><i class="fas fa-trash"></i></div>
+          </div>
+          <h2 contenteditable="true" spellcheck="false">Leadership / Extracurricular</h2>
+          <div class="content-block">
+            <div class="flex-row">
+              <span contenteditable="true"><b>Organization Name</b></span>
+              <span contenteditable="true"><b>Apr '22 – Dec '24</b></span>
+            </div>
+            <div class="flex-row">
+              <span contenteditable="true"><i>Role / Title</i></span>
+              <span contenteditable="true"><i>Location</i></span>
+            </div>
+            <ul>
+              <li contenteditable="true">Led [Number] members to achieve [Result/Impact].</li>
+              <li contenteditable="true">Collaborated with [Stakeholders] to [Key Contribution].</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- Interests -->
+        <section draggable="true">
+          <div class="sec-controls">
+            <div class="ctrl-btn drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></div>
+            <div class="ctrl-btn add-hr-btn" title="Add Divider Below"><i class="fas fa-minus"></i></div>
+            <div class="ctrl-btn del-sec-btn" title="Delete Section"><i class="fas fa-trash"></i></div>
+          </div>
+          <h2 contenteditable="true" spellcheck="false">Interests</h2>
+          <ul>
+            <li contenteditable="true">Exploring advancements in [Field, e.g., Vision-Language Models, Generative AI].</li>
+            <li contenteditable="true">Mentoring aspiring professionals and contributing to open-source projects.</li>
+            <li contenteditable="true">Leveraging technology to [Specific Goal].</li>
+          </ul>
+        </section>
+
+      </div><!-- end #sortable-sections -->
+    </div><!-- end .resume -->
+  </main>
+</div><!-- end .layout -->
+
+<!-- LINK MODAL -->
+<div class="modal-overlay" id="link-modal">
+  <div class="modal-box">
+    <div class="modal-title"><i class="fas fa-link" style="margin-right:8px;color:var(--accent)"></i>Edit Link URL</div>
+    <input type="url" class="modal-input" id="link-url-input" placeholder="https://example.com">
+    <div class="modal-footer">
+      <button class="mbtn mbtn-remove" id="modal-remove">Remove Link</button>
+      <div>
+        <button class="mbtn mbtn-cancel" id="modal-cancel">Cancel</button>
+        <button class="mbtn mbtn-save" id="modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════════════════ */
+function makeSection(isTable) {
+  const s = document.createElement('section');
+  s.draggable = true;
+  const title = isTable ? 'New Table Section' : 'New Text Section';
+  s.innerHTML = `
+    <div class="sec-controls">
+      <div class="ctrl-btn drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></div>
+      <div class="ctrl-btn add-hr-btn" title="Add Divider"><i class="fas fa-minus"></i></div>
+      <div class="ctrl-btn del-sec-btn" title="Delete Section"><i class="fas fa-trash"></i></div>
+    </div>
+    <h2 contenteditable="true" spellcheck="false">${title}</h2>
+    ${isTable ? `
+    <div class="table-wrap">
+      <div class="tbl-toolbar">
+        <button class="add-row"><i class="fas fa-plus"></i> Row</button>
+        <button class="del-row"><i class="fas fa-trash"></i> Row</button>
+        <button class="add-col"><i class="fas fa-plus"></i> Col</button>
+        <button class="del-col"><i class="fas fa-trash"></i> Col</button>
+      </div>
+      <table><tbody>
+        <tr><td contenteditable="true"><b>Category</b></td><td contenteditable="true">Details here...</td></tr>
+        <tr><td contenteditable="true"><b>Category 2</b></td><td contenteditable="true">More details...</td></tr>
+      </tbody></table>
+    </div>` : `
+    <div class="content-block">
+      <div class="flex-row">
+        <span contenteditable="true"><b>Title or Organization</b></span>
+        <span contenteditable="true"><b>Date Range</b></span>
+      </div>
+      <div class="flex-row">
+        <span contenteditable="true"><i>Subtitle or Role</i></span>
+        <span contenteditable="true"><i>Location</i></span>
+      </div>
+      <ul><li contenteditable="true">Bullet point details here...</li></ul>
+    </div>`}
+  `;
+  attachDrag(s);
+  return s;
+}
+
+function makeSkillsSection() {
+  const s = document.createElement('section');
+  s.draggable = true;
+  s.innerHTML = `
+    <div class="sec-controls">
+      <div class="ctrl-btn drag-handle"><i class="fas fa-grip-vertical"></i></div>
+      <div class="ctrl-btn add-hr-btn"><i class="fas fa-minus"></i></div>
+      <div class="ctrl-btn del-sec-btn"><i class="fas fa-trash"></i></div>
+    </div>
+    <h2 contenteditable="true" spellcheck="false">Skills</h2>
+    <ul>
+      <li contenteditable="true"><b>Languages:</b> Python, JavaScript, C++</li>
+      <li contenteditable="true"><b>Frameworks:</b> React, Node.js, Flask</li>
+      <li contenteditable="true"><b>Tools:</b> Git, Docker, VS Code</li>
+    </ul>
+  `;
+  attachDrag(s);
+  return s;
+}
+
+/* ══════════════════════════════════════════════════════════
+   THEME TOGGLE
+══════════════════════════════════════════════════════════ */
+const html = document.documentElement;
+const themeBtn = document.getElementById('theme-toggle');
+const themeIcon = document.getElementById('theme-icon');
+themeBtn.addEventListener('click', () => {
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  themeIcon.className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+});
+
+/* ══════════════════════════════════════════════════════════
+   THEME COLOR SWATCHES
+══════════════════════════════════════════════════════════ */
+document.querySelectorAll('.swatch').forEach(sw => {
+  sw.addEventListener('click', () => {
+    // Remove active class from all swatches
+    document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+    // Add active class to the clicked swatch
+    sw.classList.add('active');
+    
+    // Update the CSS root variable with the new color
+    document.documentElement.style.setProperty('--accent', sw.dataset.color);
+  });
+});
+</script>
+</body>
+</html>
