@@ -60,7 +60,9 @@ body{
   font-family:'Inter',sans-serif;
   background:var(--ws-bg);
   color:var(--txt);
+  min-height:100vh;
   height:100vh;
+  height:100dvh;
   display:flex;
   flex-direction:column;
   overflow:hidden;
@@ -407,6 +409,9 @@ td:focus{background:var(--focus-hl);outline:none}
 
 @media (max-width: 768px) {
   .topbar-btn span.btn-text { display: none; }
+  .topbar { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .topbar::-webkit-scrollbar { height: 4px; }
+  .topbar-sep { flex: 0 0 8px; }
 }
 
 @media (max-width: 600px) {
@@ -415,6 +420,9 @@ td:focus{background:var(--focus-hl);outline:none}
   .resume { padding: 24px 16px 24px 32px; font-size: 10pt; }
   .resume h1 { font-size: 2em; }
   .resume h2 { font-size: 1.1em; }
+  .resume { overflow-wrap: anywhere; }
+  .flex-row { flex-wrap: wrap; row-gap: 4px; }
+  .flex-row span { min-width: 0; }
   
   /* Pull controls inward so they don't overflow screen */
   section { padding-left: 0; margin-left: 0; margin-top: 10px;}
@@ -793,6 +801,16 @@ sidebarOverlay.addEventListener('click', toggleSidebar);
 /* ══════════════════════════════════════════════════════════
    HELPERS & STRUCTURE GENERATION
 ══════════════════════════════════════════════════════════ */
+let linkContainer = null;
+let sortableSections = null;
+
+function refreshDynamicRoots() {
+  linkContainer = document.getElementById('links-contact');
+  sortableSections = document.getElementById('sortable-sections');
+}
+
+refreshDynamicRoots();
+
 function makeSection(isTable) {
   const s = document.createElement('section');
   s.draggable = true;
@@ -864,6 +882,8 @@ function reattachAllListeners() {
   draggedElement = null;
   draggedContact = null;
 
+  refreshDynamicRoots();
+
   document.querySelectorAll('#sortable-sections section').forEach(attachDrag);
   document.querySelectorAll('.contact-item').forEach(attachContactDrag);
   document.querySelectorAll('.hr-wrapper').forEach(attachDrag);
@@ -885,7 +905,10 @@ function attachDrag(el) {
   el.addEventListener('dragstart', function(e) {
     draggedElement = this;
     setTimeout(() => this.classList.add('dragging'), 0);
-    e.dataTransfer.effectAllowed = 'move';
+    if (e.dataTransfer) {
+      e.dataTransfer.setData('text/plain', 'drag');
+      e.dataTransfer.effectAllowed = 'move';
+    }
   });
   
   el.addEventListener('dragend', function() {
@@ -947,7 +970,10 @@ function attachContactDrag(el) {
   el.addEventListener('dragstart', function(e) {
     draggedContact = this;
     setTimeout(() => this.classList.add('dragging-contact'), 0);
-    e.dataTransfer.effectAllowed = 'move';
+    if (e.dataTransfer) {
+      e.dataTransfer.setData('text/plain', 'drag');
+      e.dataTransfer.effectAllowed = 'move';
+    }
   });
   
   el.addEventListener('dragend', function() {
@@ -1006,6 +1032,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const savedDraft = localStorage.getItem('resumeDraftData');
   if (savedDraft) {
     document.querySelector('.resume').innerHTML = savedDraft;
+    refreshDynamicRoots();
     reattachAllListeners(); // Rebind drag events after loading new HTML
   }
 });
@@ -1054,6 +1081,7 @@ document.getElementById('import-file-input').addEventListener('change', function
   const reader = new FileReader();
   reader.onload = function(event) {
     document.querySelector('.resume').innerHTML = event.target.result;
+    refreshDynamicRoots();
     reattachAllListeners(); // Rebind drag events after loading new HTML
   };
   reader.readAsText(file);
@@ -1066,8 +1094,6 @@ document.getElementById('import-file-input').addEventListener('change', function
 /* ══════════════════════════════════════════════════════════
    EVENT LISTENERS: HEADER LINKS
 ══════════════════════════════════════════════════════════ */
-const linkContainer = document.getElementById('links-contact');
-
 // Toggle Icons 
 document.getElementById('toggle-icons-btn').addEventListener('click', function() {
   document.querySelector('.resume').classList.toggle('hide-icons');
@@ -1084,6 +1110,8 @@ document.getElementById('toggle-icons-btn').addEventListener('click', function()
 });
 
 function addContactLink(iconClass, text, isLink = true) {
+  refreshDynamicRoots();
+  if (!linkContainer) return;
   const div = document.createElement('div');
   div.className = 'contact-item';
   const innerContent = isLink ? `<a href="#" contenteditable="true">${text}</a>` : `<span contenteditable="true">${text}</span>`;
@@ -1102,16 +1130,21 @@ document.getElementById('add-phone-link').addEventListener('click', () => addCon
 /* ══════════════════════════════════════════════════════════
    EVENT LISTENERS: SECTIONS & STRUCTURE
 ══════════════════════════════════════════════════════════ */
-const sortableSections = document.getElementById('sortable-sections');
 document.getElementById('add-section-btn').addEventListener('click', () => {
+  refreshDynamicRoots();
+  if (!sortableSections) return;
   sortableSections.appendChild(makeSection(false));
   if(window.innerWidth <= 950) toggleSidebar();
 });
 document.getElementById('add-table-btn').addEventListener('click', () => {
+  refreshDynamicRoots();
+  if (!sortableSections) return;
   sortableSections.appendChild(makeSection(true));
   if(window.innerWidth <= 950) toggleSidebar();
 });
 document.getElementById('add-skills-btn').addEventListener('click', () => {
+  refreshDynamicRoots();
+  if (!sortableSections) return;
   sortableSections.appendChild(makeSkillsSection());
   if(window.innerWidth <= 950) toggleSidebar();
 });
